@@ -35,10 +35,16 @@ class DeferEventListener
      * When we defer a DeferEvent. (The publisher decides that this should be a defer event)
      *
      * @param DeferEvent $event
+     * @param string $name
      */
-    public function onDeferEvent(DeferEvent $event)
+    public function onDeferEvent(DeferEvent $event, $name = null)
     {
-        $message=$this->messageService->createMessage($event->getDeferredEvent());
+        $message = $this->messageService->createMessage($event->getDeferredEvent());
+        if (!is_null($name)) {
+            $message->addHeader('event_name', $name);
+        } else if (method_exists($event, 'getName')) {
+            $message->addHeader('event_name', $event->getName());
+        }
         $this->queue->addMessage($message, 0);
     }
 
@@ -46,10 +52,16 @@ class DeferEventListener
      * When we defer a normal Event. (The listener decides that this should be a defer event)
      *
      * @param Event $event
+     * @param string $name
      */
-    public function onNonDeferEvent(Event $event)
+    public function onNonDeferEvent(Event $event, $name = null)
     {
         $message = $this->messageService->createMessage($event);
+        if (!is_null($name)) {
+            $message->addHeader('event_name', $name);
+        } else if (method_exists($event, 'getName')) {
+            $message->addHeader('event_name', $event->getName());
+        }
         $this->queue->addMessage($message);
     }
 }

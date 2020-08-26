@@ -15,6 +15,7 @@ class DispatchEventCommand extends ContainerAwareCommand
             ->setName('fervo:deferred-event:dispatch')
             ->setDescription('Dispatch a deferred event')
             ->addArgument('event_data', InputArgument::REQUIRED, 'A serialized event to dispatch')
+            ->addArgument('event_name', InputArgument::OPTIONAL, 'Name of the event to dispatch')
         ;
     }
 
@@ -27,6 +28,16 @@ class DispatchEventCommand extends ContainerAwareCommand
         $event = $container
             ->get('fervo_deferred_event.serializer')
             ->deserialize($input->getArgument('event_data'), null, $serializerFormat);
+
+        $eventName = $input->getArgument('event_name');
+        // Sf < 3.0 work around
+        if (is_null($eventName) && method_exists($event, 'getName')) {
+            $eventName = $event->getName();
+        }
+
+        if (is_null($eventName)) {
+            throw new \RuntimeException('Can\'t determine event name, for given event to dispatch');
+        }
 
         if ($container->getParameter('fervo_deferred_event.debug')) {
             if ($container->has('monolog.logger.deferred_event')) {
@@ -43,6 +54,6 @@ class DispatchEventCommand extends ContainerAwareCommand
             $logger->debug(sprintf("Dispatching event (%s) to event dispatcher.", get_class($event)), $eventData);
         }
 
-        $container->get('fervo_deferred_event.dispatcher')->dispatch($event->getName(), $event);
+        $container->get('fervo_deferred_event.dispatcher')->dispatch($eventName, $event);
     }
 }

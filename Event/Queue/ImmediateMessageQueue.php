@@ -3,13 +3,13 @@
 namespace Fervo\DeferredEventBundle\Event\Queue;
 
 use Fervo\DeferredEventBundle\Model\QueueMessage;
-use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 
 class ImmediateMessageQueue implements MessageQueueInterface
 {
     /**
-     * @var \Symfony\Component\EventDispatcher\EventDispatcher eventDispatcher
+     * @var \Symfony\Component\EventDispatcher\EventDispatcherInterface eventDispatcher
      *
      */
     protected $eventDispatcher;
@@ -31,7 +31,7 @@ class ImmediateMessageQueue implements MessageQueueInterface
      * @param SerializerInterface $eventSerializer
      * @param $serializerFormat
      */
-    public function __construct(EventDispatcher $eventDispatcher, SerializerInterface $eventSerializer, $serializerFormat)
+    public function __construct(EventDispatcherInterface $eventDispatcher, SerializerInterface $eventSerializer, $serializerFormat)
     {
         $this->eventDispatcher = $eventDispatcher;
         $this->serializerFormat = $serializerFormat;
@@ -45,7 +45,11 @@ class ImmediateMessageQueue implements MessageQueueInterface
          * don't have the message queue set up.
          */
         $event = $this->eventSerializer->deserialize($message->getData(), null, $this->serializerFormat);
-
-        $this->eventDispatcher->dispatch($event->getName(), $event);
+        $eventName =  $message->getHeader('event_name');
+        // Sf < 3.0 work around
+        if (is_null($eventName) && method_exists($event, 'getName')) {
+            $eventName = $event->getName();
+        }
+        $this->eventDispatcher->dispatch($eventName, $event);
     }
 }
