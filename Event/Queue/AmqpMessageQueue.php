@@ -119,7 +119,7 @@ class AmqpMessageQueue implements MessageQueueInterface
         $this->batchPublishing = $this->config['batch_publishing'];
 
         //establish connection
-        $this->queueConnection = new AMQPConnection($this->config['host'], $this->config['port'], $this->config['user'], $this->config['pass']);
+        $this->queueConnection = new AMQPConnection($this->config['host'], $this->config['port'], $this->config['user'], $this->config['pass'], $this->config['vhost']);
 
         //get a channel
         $this->queueChannel = $this->queueConnection->channel();

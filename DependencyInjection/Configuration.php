@@ -24,7 +24,7 @@ class Configuration implements ConfigurationInterface
                         ->arrayNode('amqp_config')->addDefaultsIfNotSet()
                             ->children()
                                 ->scalarNode('host')->defaultValue('localhost')->end()
-                                ->integerNode('port')->defaultValue(5672)->end()
+                                ->scalarNode('port')->defaultValue('5672')->end()
                                 ->scalarNode('user')->defaultValue('guest')->end()
                                 ->scalarNode('pass')->defaultValue('guest')->end()
                                 ->scalarNode('queue_name')->defaultValue('sf_deferred_events')->end()
